@@ -60,7 +60,7 @@ type
 
 type
   ifC = class(ExprC)
-  private
+  public
     g: ExprC;
     t: ExprC;
     e: ExprC;
@@ -380,24 +380,106 @@ begin
   b := boolV.Create(true);
   assert(b.GetBool = true, 'TestBoolV failed');
   assert(b.ToString = 'boolV: true', 'TestBoolV ToString failed');
-  writeln('TestBoolV passed');
+  writeln('TestBoolV passed!');
+
+  b := boolV.Create(false);
+  assert(b.GetBool = false, 'TestBoolV failed');
+  assert(b.ToString = 'boolV: false', 'TestBoolV ToString failed');
+  writeln('TestBoolV passed!!');
 end;
 
-procedure TestPrimV;
+procedure TestStringC;
 var
-  p: primV;
+  s: stringC;
 begin
-  p := primV.Create('+');
-  assert(p.GetOp = '+', 'TestPrimV failed');
-  assert(p.ToString = 'primV: +', 'TestPrimV ToString failed');
-  writeln('TestPrimV passed');
+  s := stringC.Create('Hello, World!');
+  assert(s.GetStr = 'Hello, World!', 'TestStringC failed');
+  assert(s.ToString = 'stringC: "Hello, World!"', 'TestStringC ToString failed');
+  writeln('TestStringC passed!!');
+
+  s := stringC.Create('');
+  assert(s.GetStr = '', 'TestStringC failed');
+  assert(s.ToString = 'stringC: ""', 'TestStringC ToString failed');
+  writeln('TestStringC passed!!');
+end;
+
+procedure TestSymbolC;
+var
+  sym: idC;
+begin
+  sym := idC.Create('mySymbol');
+  assert(sym.GetId = 'mySymbol', 'TestSymbolC failed');
+  writeln('TestSymbolC passed');
+
+  sym := idC.Create('another-symbol');
+  assert(sym.GetId = 'another-symbol', 'TestSymbolC failed');
+  writeln('TestSymbolC passed!!');
+end;
+
+procedure TestIfC;
+var
+  ifExpr: ifC;
+  guardExpr, thenExpr, elseExpr: ExprC;
+begin
+  guardExpr := boolV.Create(true);
+  thenExpr := numV.Create(42);
+  elseExpr := numV.Create(0);
+  ifExpr := ifC.Create(guardExpr, thenExpr, elseExpr);
+  assert(ifExpr.g = guardExpr, 'TestIfC failed');
+  assert(ifExpr.t = thenExpr, 'TestIfC failed');
+  assert(ifExpr.e = elseExpr, 'TestIfC failed');
+  writeln('TestIfC passed');
+
+  guardExpr := boolV.Create(false);
+  thenExpr := stringC.Create('true branch');
+  elseExpr := stringC.Create('false branch');
+  ifExpr := ifC.Create(guardExpr, thenExpr, elseExpr);
+  assert(ifExpr.g = guardExpr, 'TestIfC failed');
+  assert(ifExpr.t = thenExpr, 'TestIfC failed');
+  assert(ifExpr.e = elseExpr, 'TestIfC failed');
+  writeln('TestIfC passed');
+end;
+
+procedure TestParse;
+var
+  exprNum, exprBool, exprStr, exprSym, exprIf: ExprC;
+begin
+  exprNum := parse(['42']);
+  assert(exprNum is numV, 'TestParse failed for numV');
+  assert(numV(exprNum).GetNum = 42.0, 'TestParse failed for numV value');
+  writeln('TestParse passed for numV');
+
+  exprBool := parse(['true']);
+  assert(exprBool is boolV, 'TestParse failed for boolV');
+  assert(boolV(exprBool).GetBool = true, 'TestParse failed for boolV value');
+  writeln('TestParse passed for boolV');
+
+  exprStr := parse(['"Hello"']);
+  assert(exprStr is stringC, 'TestParse failed for stringC');
+  assert(stringC(exprStr).GetStr = 'Hello', 'TestParse failed for stringC value');
+  writeln('TestParse passed for stringC');
+
+  exprSym := parse(['mySymbol']);
+  assert(exprSym is idC, 'TestParse failed for idC');
+  assert(idC(exprSym).GetId = 'mySymbol', 'TestParse failed for idC value');
+  writeln('TestParse passed for idC');
+
+  exprIf := parse(['if', ':', 'true', ':', '42', ':', '0']);
+  assert(exprIf is ifC, 'TestParse failed for ifC');
+  assert(ifC(exprIf).g is boolV, 'TestParse failed for ifC guard');
+  assert(ifC(exprIf).t is numV, 'TestParse failed for ifC then branch');
+  assert(ifC(exprIf).e is numV, 'TestParse failed for ifC else branch');
+  writeln('TestParse passed for ifC');
 end;
 
 procedure RunTests;
 begin
   TestNumV;
   TestBoolV;
-  TestPrimV;
+  TestStringC;
+  TestSymbolC;
+  TestIfC;
+  TestParse;
 end;
 
 var
