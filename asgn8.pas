@@ -12,14 +12,15 @@ type
 
 type
   Value = class(ExprC)
+  published
     function ToString: string; virtual; abstract;
   end;
 
 type
-   argz = array of ExprC;
+  argz = array of ExprC;
 
 type
-   lamArgz = array of string;
+  lamArgz = array of string;
 
 type
   idC = class(ExprC)
@@ -45,36 +46,36 @@ type
   end;
 
 type
-   lamC = class(ExprC)
-   private
-      args: lamArgz;
-      body: ExprC;
-   public
-      constructor Create(lamArgs: lamArgz; lamBody: ExprC);
-      procedure SetBody(lamBody: ExprC);
-      function GetBody: ExprC;
-      procedure SetArgs(lamArgs: lamArgz);
-      function GetArgs: lamArgz;
-end;
+  lamC = class(ExprC)
+  private
+    args: lamArgz;
+    body: ExprC;
+  public
+    constructor Create(lamArgs: lamArgz; lamBody: ExprC);
+    procedure SetBody(lamBody: ExprC);
+    function GetBody: ExprC;
+    procedure SetArgs(lamArgs: lamArgz);
+    function GetArgs: lamArgz;
+  end;
 
 type
-   ifC = class(ExprC)
-   private
-      g: ExprC;
-      t: ExprC;
-      e: ExprC;
-   public  
-      constructor Create(ifG: ExprC; ifT: ExprC; ifE: ExprC);
-end;
+  ifC = class(ExprC)
+  private
+    g: ExprC;
+    t: ExprC;
+    e: ExprC;
+  public
+    constructor Create(ifG: ExprC; ifT: ExprC; ifE: ExprC);
+  end;
 
 type
-   libfunC = class(ExprC)
-   private
-      id: string;
-      args: argz;
-   public
-      constructor Create(libId: string; libArgs: argz);
-end;
+  libfunC = class(ExprC)
+  private
+    id: string;
+    args: argz;
+  public
+    constructor Create(libId: string; libArgs: argz);
+  end;
 
 // values
 type
@@ -85,6 +86,7 @@ type
     constructor Create(n: real);
     procedure SetNum(n: real);
     function GetNum: real;
+  published
     function ToString: string; override;
   end;
 
@@ -96,6 +98,7 @@ type
     constructor Create(val: boolean);
     procedure SetBool(val: boolean);
     function GetBool: boolean;
+  published
     function ToString: string; override;
   end;
 
@@ -107,6 +110,7 @@ type
     constructor Create(val: string);
     procedure SetOp(val: string);
     function GetOp: string;
+  published
     function ToString: string; override;
   end;
 
@@ -221,41 +225,74 @@ end;
 
 constructor lamC.Create(lamArgs: lamArgz; lamBody: ExprC);
 begin
-   args := lamArgs;
-   body := lamBody;
+  args := lamArgs;
+  body := lamBody;
 end;
 
 procedure lamC.SetArgs(lamArgs: lamArgz);
 begin
-   args := lamArgs;
+  args := lamArgs;
 end;
 
 function lamC.GetArgs: lamArgz;
 begin
-   Result := args;
+  Result := args;
 end;
 
 procedure lamC.SetBody(lamBody: ExprC);
 begin
-   body := lamBody;
+  body := lamBody;
 end;
 
 function lamC.GetBody: ExprC;
 begin
-   Result := body;
+  Result := body;
 end;
 
 constructor ifC.Create(ifG: ExprC; ifT: ExprC; ifE: ExprC);
 begin
-   g := ifG;
-   t := ifT;
-   e := ifE;
+  g := ifG;
+  t := ifT;
+  e := ifE;
 end;
 
 constructor libfunC.Create(libId: string; libArgs: argz);
 begin
-   id := libId;
-   args := libArgs;
+  id := libId;
+  args := libArgs;
+end;
+
+type
+  stringC = class(Value)
+  private
+    str: string;
+  public
+    constructor Create(s: string);
+    procedure SetStr(s: string);
+    function GetStr: string;
+  published
+    function ToString: string; override;
+  end;
+
+// stringC operations
+constructor stringC.Create(s: string);
+begin
+  str := s;
+end;
+
+procedure stringC.SetStr(s: string);
+begin
+  str := s;
+end;
+
+function stringC.GetStr: string;
+begin
+  Result := str;
+end;
+
+function stringC.ToString: string;
+begin
+  Result := 'stringC: "' + str + '"';
 end;
 
 function IsRealNumber(const S: string): Boolean;
@@ -265,17 +302,64 @@ begin
   Result := TryStrToFloat(S, R);
 end;
 
-function parse(Sexp: array of string): ExprC;
-var s: string;
+function IsRealBool(const S: string): Boolean;
 begin
-   if length(Sexp) = 0 then
-      raise Exception.Create('ZODE: parse: empty Sexp!')
-   else
-      s := Sexp[0];
-      if IsRealNumber(s) then
-         Result := numV.Create(StrToFloat(s))
-      else
-         raise Exception.Create('ZODE: parse: unrecognized Sexp!');
+  Result := (S = 'true') or (S = 'false');
+end;
+
+function IsRealString(const S: string): Boolean;
+begin
+  Result := (Length(S) >= 2) and (S[1] = '"') and (S[Length(S)] = '"');
+end;
+
+function IsSymbol(const S: string): Boolean;
+begin
+  Result := (Length(S) > 0) and (not IsRealNumber(S)) and (not IsRealBool(S)) and (not IsRealString(S));
+end;
+
+function StrToStr(const S: string): string;
+begin
+  Result := Copy(S, 2, Length(S) - 2);
+end;
+
+function StrToIdc(const S: string): string;
+begin
+  Result := S;
+end;
+
+function parse(Sexp: array of string): ExprC;
+var
+  s: string;
+  guard, thenExpr, elseExpr: ExprC;
+  elseExprs: array of string;
+  i: integer;
+begin
+  if Length(Sexp) = 0 then
+    raise Exception.Create('ZODE: parse: empty Sexp!')
+  else
+  begin
+    s := Sexp[0];
+    if IsRealNumber(s) then
+      Result := numV.Create(StrToFloat(s))
+    else if IsRealBool(s) then
+      Result := boolV.Create(s = 'true')
+    else if IsRealString(s) then
+      Result := stringC.Create(StrToStr(s))
+    else if IsSymbol(s) then
+      Result := idC.Create(StrToIdc(s))
+    else if (Length(Sexp) >= 6) and (Sexp[0] = 'if') and (Sexp[1] = ':') and (Sexp[3] = ':') and (Sexp[5] = ':') then
+    begin
+      guard := parse([Sexp[2]]);
+      thenExpr := parse([Sexp[4]]);
+      SetLength(elseExprs, Length(Sexp) - 5);
+      for i := 6 to Length(Sexp) - 1 do
+        elseExprs[i - 6] := Sexp[i];
+      elseExpr := parse(elseExprs);
+      Result := ifC.Create(guard, thenExpr, elseExpr);
+    end
+    else
+      raise Exception.Create('ZODE: parse: unrecognized Sexp!');
+  end;
 end;
 
 // Test cases
