@@ -63,17 +63,30 @@ type
       function GetArgs: lamArgz;
 end;
 
+// numC definition
+type
+   numC = class(ExprC)
+   private
+      num: Real;
+   public
+      constructor Create(n : real);
+      procedure SetNum(n : real);
+      function GetNum: real;
+   published
+      function ToString: string;
+   end;
+
 // stringC definition
 type
    stringC = class(ExprC)
-      private
-         str : string;
-      public
-         constructor Create(s: string);
-         procedure SetStr(s : string);
-         function GetStr: string;
-      published
-         function ToString: string;
+   private
+      str : string;
+   public
+      constructor Create(s: string);
+      procedure SetStr(s : string);
+      function GetStr: string;
+   published
+      function ToString: string;
    end;
 
 // ifC definition
@@ -302,22 +315,25 @@ begin
   Result := 'stringC: ' + str;
 end;
 
-// Check type
-function IsRealNumber(const S: string): Boolean;
-var
-  R: Double;
+// numC operations
+constructor numC.Create(n : real);
 begin
-  Result := TryStrToFloat(S, R);
+  num := n;
 end;
 
-function IsBool(const S: string) : Boolean;
+procedure numC.SetNum(n : real);
 begin
-  Result := (S = 'true') or (S = 'false');
+  num := n;
 end;
 
-function IsSymbol(const S: string) : Boolean;
+function numC.GetNum: real;
 begin
-  Result := (Length(S) > 0) and (S[0] = '''');
+  Result := num
+end;
+
+function numC.ToString: string;
+begin
+  Result := 'numC: ' + FloatToStr(num);
 end;
 
 // Prohibited keywords
@@ -339,6 +355,24 @@ begin
   end;
 end;
 
+// Check type
+function IsRealNumber(const S: string): Boolean;
+var
+  R: Double;
+begin
+  Result := TryStrToFloat(S, R);
+end;
+
+function IsBool(const S: string) : Boolean;
+begin
+  Result := (S = 'true') or (S = 'false');
+end;
+
+function IsSymbol(const S: string) : Boolean;
+begin
+  Result := (Length(S) > 0) and (S[0] = '''') and IsKeyword(s);
+end;
+
 function parse(Sexp: array of string): ExprC;
 var
   s: string;
@@ -349,14 +383,23 @@ begin
   begin
     s := Sexp[0];
     if IsRealNumber(s) then
-      Result := numV.Create(StrToFloat(s))
+      Result := numC.Create(StrToFloat(s));
     else if IsBool(s) then
     begin
       if s = 'true' then
-        Result := boolV.Create(true)
+        Result := boolC.Create(true);
       else
-        Result := boolV.Create(false);
+        Result := boolC.Create(false);
     end
+    else if IsSymbol(s) then
+      Result := idC.Create(s);
+    else if IsString(s) then
+      Result := stringC.Create(s);
+    else if Sexp[0] = 'if' and Sexp[1] = ':' and Sexp[3] = ':' and Sexp[5] = ':'
+    then
+      ifC.Create(parse(Copy(Sexp, 2, 1)),
+                                  parse(Copy(Sexp, 4, 1)),
+                                  parse(Copy(Sexp, 6, 1)));
     else
       raise Exception.Create('ZODE: parse: unrecognized Sexp!');
   end;
@@ -383,6 +426,18 @@ begin
   writeln('TestBoolV passed');
 end;
 
+procedure TestParse;
+var
+   numArr: array[0..1] of string = ('1');
+   strArr: array[0..1] of string = ('cow');
+   symArr: array[0..1] of string = ('''cow');
+   boolArr: array[0..1] of string = ('false');
+   boolArr: array[0..1] of string = ('true');
+   keywordCheckArr: array[0..1] of string = ('''true');
+   ifArr: array[0..6] of string = ('if', ':', 'true', ':', '1', ':', '0');
+begin
+   assert(parse(numArr), numC);
+end;
 procedure TestPrimV;
 var
   p: primV;
