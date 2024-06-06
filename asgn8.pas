@@ -349,6 +349,17 @@ begin
   writeln('TestBoolV passed');
 end;
 
+procedure TestPrimV;
+var
+  p: primV;
+begin
+  p := primV.Create('+');
+  assert(p.op = '+', 'TestPrimV failed');
+  assert(p.ToString = 'primV: +', 'TestPrimV ToString failed');
+  writeln('TestPrimV passed');
+end;
+
+
 procedure TestParse;
 var
   numArr: array of string = ('1');
@@ -395,17 +406,6 @@ begin
   expectedExpr := appC.Create(idC.Create('+'), expectedArgs);
   assert(parsedExpr = expectedExpr, 'Test Parse failed: unexpected appC');
   writeln('Test Parse passed');
-end;
-
-
-procedure TestPrimV;
-var
-  p: primV;
-begin
-  p := primV.Create('+');
-  assert(p.op = '+', 'TestPrimV failed');
-  assert(p.ToString = 'primV: +', 'TestPrimV ToString failed');
-  writeln('TestPrimV passed');
 end;
 
 procedure RunTests;
