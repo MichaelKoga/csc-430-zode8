@@ -309,7 +309,8 @@ begin
       Result := appC.Create(idC.Create(Sexp[0]), appCArgs);
       Exit;
     end
-    else if (Length(Sexp) > 5) and (Sexp[0] = 'if') and (Sexp[1] = ':') and (Sexp[3] = ':') and (Sexp[5] = ':') then
+    else if (Length(Sexp) > 5) and (Sexp[0] = 'if') 
+    and (Sexp[1] = ':') and (Sexp[3] = ':') and (Sexp[5] = ':') then
     begin
       Result := ifC.Create(parse([Sexp[2]]), parse([Sexp[4]]), parse([Sexp[6]]));
       Exit;
@@ -326,7 +327,29 @@ begin
   end;
 end;
 
+function interpOp(e: idC): Boolean
+var
+  op: string;
+begin
+    op := e.id;
+    Result := IsPrimOp(op);
+end;
 
+function interp(e: ExprC): Value;
+begin
+  if e is numV then
+    Result := (e as numV).num // Create a new numV instance with the value from e
+  else if e is boolV then
+    Result := (e as boolV).b // Example for handling boolV type
+  else if e is appC then
+  begin
+    if (e as appC).exp is idC then
+      if interpOp((e as appC).exp) then
+        Result := 
+  end
+  else
+    raise Exception.Create('interp: unhandled type');
+end;
 
 // Test cases
 procedure TestNumV;
