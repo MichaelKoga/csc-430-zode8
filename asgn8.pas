@@ -27,121 +27,89 @@ type
 // idC definition
 type
   idC = class(ExprC)
-  private
-    id: string;
   public
+    id: string;
     constructor Create(s: string);
-    procedure SetId(s: string);
-    function GetId: string;
   end;
 
 // appC definition
 type
   appC = class(ExprC)
-  private
+  public
     exp: ExprC;
     args: argz;
-  public
     constructor Create(ex: ExprC; arguments: argz);
-    procedure SetExp(ex: ExprC);
-    function GetExp: ExprC;
-    procedure SetArgs(arguments: argz);
-    function GetArgs: argz;
   end;
 
 // lamC definition
 type
    lamC = class(ExprC)
-   private
+   public
       args: lamArgz;
       body: ExprC;
-   public
       constructor Create(lamArgs: lamArgz; lamBody: ExprC);
-      procedure SetBody(lamBody: ExprC);
-      function GetBody: ExprC;
-      procedure SetArgs(lamArgs: lamArgz);
-      function GetArgs: lamArgz;
-end;
+   end;
 
 // numC definition
 type
    numC = class(ExprC)
-   private
-      num: Real;
    public
+      num: Real;
       constructor Create(n : real);
-      procedure SetNum(n : real);
-      function GetNum: real;
-   published
       function ToString: string;
    end;
 
 // stringC definition
 type
    stringC = class(ExprC)
-   private
-      str : string;
    public
+      str : string;
       constructor Create(s: string);
-      procedure SetStr(s : string);
-      function GetStr: string;
-   published
       function ToString: string;
    end;
 
 // ifC definition
 type
    ifC = class(ExprC)
-   private
+   public
       g: ExprC;
       t: ExprC;
       e: ExprC;
-   public  
       constructor Create(ifG: ExprC; ifT: ExprC; ifE: ExprC);
 end;
 
 type
    libfunC = class(ExprC)
-   private
+   public
       id: string;
       args: argz;
-   public
       constructor Create(libId: string; libArgs: argz);
 end;
 
 // numV value
 type
   numV = class(Value)
-  private
-    num: real;
   public
+    num: real;
     constructor Create(n: real);
-    procedure SetNum(n: real);
-    function GetNum: real;
     function ToString: string; override;
   end;
 
 // boolV value
 type
   boolV = class(Value)
-  private
-    b: boolean;
   public
+    b: boolean;
     constructor Create(val: boolean);
-    procedure SetBool(val: boolean);
-    function GetBool: boolean;
     function ToString: string; override;
   end;
 
 // primV value
 type
   primV = class(Value)
-  private
-    op: string; // Pascal uses string instead of Symbol
   public
+    op: string; // Pascal uses string instead of Symbol
     constructor Create(val: string);
-    procedure SetOp(val: string);
-    function GetOp: string;
     function ToString: string; override;
   end;
 
@@ -149,16 +117,6 @@ type
 constructor numV.Create(n: real);
 begin
   num := n;
-end;
-
-procedure numV.SetNum(n: real);
-begin
-  num := n;
-end;
-
-function numV.GetNum: real;
-begin
-  Result := num;
 end;
 
 function numV.ToString: string;
@@ -170,16 +128,6 @@ end;
 constructor boolV.Create(val: boolean);
 begin
   b := val;
-end;
-
-procedure boolV.SetBool(val: boolean);
-begin
-  b := val;
-end;
-
-function boolV.GetBool: boolean;
-begin
-  Result := b;
 end;
 
 function boolV.ToString: string;
@@ -196,16 +144,6 @@ begin
   op := val;
 end;
 
-procedure primV.SetOp(val: string);
-begin
-  op := val;
-end;
-
-function primV.GetOp: string;
-begin
-  Result := op;
-end;
-
 function primV.ToString: string;
 begin
   Result := 'primV: ' + op;
@@ -217,16 +155,6 @@ begin
   id := s;
 end;
 
-procedure idC.SetId(s: string);
-begin
-  id := s;
-end;
-
-function idC.GetId: string;
-begin
-  Result := id;
-end;
-
 // appC operations
 constructor appC.Create(ex: ExprC; arguments: argz);
 begin
@@ -234,51 +162,11 @@ begin
   args := arguments;
 end;
 
-procedure appC.SetExp(ex: ExprC);
-begin
-  exp := ex;
-end;
-
-function appC.GetExp: ExprC;
-begin
-  Result := exp;
-end;
-
-procedure appC.SetArgs(arguments: argz);
-begin
-  args := arguments;
-end;
-
-function appC.GetArgs: argz;
-begin
-  Result := args;
-end;
-
 // lamC operations
 constructor lamC.Create(lamArgs: lamArgz; lamBody: ExprC);
 begin
    args := lamArgs;
    body := lamBody;
-end;
-
-procedure lamC.SetArgs(lamArgs: lamArgz);
-begin
-   args := lamArgs;
-end;
-
-function lamC.GetArgs: lamArgz;
-begin
-   Result := args;
-end;
-
-procedure lamC.SetBody(lamBody: ExprC);
-begin
-   body := lamBody;
-end;
-
-function lamC.GetBody: ExprC;
-begin
-   Result := body;
 end;
 
 constructor ifC.Create(ifG: ExprC; ifT: ExprC; ifE: ExprC);
@@ -300,16 +188,6 @@ begin
   str := s;
 end;
 
-procedure stringC.SetStr(s : string);
-begin
-  str := s;
-end;
-
-function stringC.GetStr: string;
-begin
-  Result := str
-end;
-
 function stringC.ToString: string;
 begin
   Result := 'stringC: ' + str;
@@ -319,16 +197,6 @@ end;
 constructor numC.Create(n : real);
 begin
   num := n;
-end;
-
-procedure numC.SetNum(n : real);
-begin
-  num := n;
-end;
-
-function numC.GetNum: real;
-begin
-  Result := num
 end;
 
 function numC.ToString: string;
@@ -378,7 +246,7 @@ function IsRealNumber(const S: string): Boolean;
 var
   R: Double;
 begin
-Result := false; // Initialize Result to false
+  Result := false; // Initialize Result to false
   Result := TryStrToFloat(S, R);
 end;
 
@@ -389,13 +257,13 @@ end;
 
 function IsBool(const S: string) : Boolean;
 begin
-Result := false; // Initialize Result to false
+  Result := false; // Initialize Result to false
   Result := (S = 'true') or (S = 'false');
 end;
 
 function IsSymbol(const S: string) : Boolean;
 begin
-Result := false; // Initialize Result to false
+  Result := false; // Initialize Result to false
   Result := (Length(S) > 0) and (S[0] = '''') and IsKeyword(s);
 end;
 
@@ -466,7 +334,7 @@ var
   n: numV;
 begin
   n := numV.Create(42.0);
-  assert(n.GetNum = 42.0, 'TestNumV failed');
+  assert(n.num = 42.0, 'TestNumV failed');
   assert(n.ToString = 'numV: 42', 'TestNumV ToString failed');
   writeln('TestNumV passed');
 end;
@@ -476,7 +344,7 @@ var
   b: boolV;
 begin
   b := boolV.Create(true);
-  assert(b.GetBool = true, 'TestBoolV failed');
+  assert(b.b = true, 'TestBoolV failed');
   assert(b.ToString = 'boolV: true', 'TestBoolV ToString failed');
   writeln('TestBoolV passed');
 end;
@@ -525,7 +393,7 @@ begin
   expectedArgs[0] := numC.Create(1);
   expectedArgs[1] := numC.Create(2);
   expectedExpr := appC.Create(idC.Create('+'), expectedArgs);
-  assert (parsedExpr = expectedExpr, 'test parse failed: unexpected appC');
+  assert(parsedExpr = expectedExpr, 'Test Parse failed: unexpected appC');
   writeln('Test Parse passed');
 end;
 
@@ -535,7 +403,7 @@ var
   p: primV;
 begin
   p := primV.Create('+');
-  assert(p.GetOp = '+', 'TestPrimV failed');
+  assert(p.op = '+', 'TestPrimV failed');
   assert(p.ToString = 'primV: +', 'TestPrimV ToString failed');
   writeln('TestPrimV passed');
 end;
