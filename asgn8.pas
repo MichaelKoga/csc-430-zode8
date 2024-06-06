@@ -363,6 +363,11 @@ begin
   Result := TryStrToFloat(S, R);
 end;
 
+function IsRealString(const S: string): Boolean;
+begin
+  Result := (Length(S) >= 2) and (S[1] = '"') and (S[Length(S)] = '"');
+end;
+
 function IsBool(const S: string) : Boolean;
 begin
   Result := (S = 'true') or (S = 'false');
@@ -383,27 +388,27 @@ begin
   begin
     s := Sexp[0];
     if IsRealNumber(s) then
-      Result := numC.Create(StrToFloat(s));
+      Result := numV.Create(StrToFloat(s))
     else if IsBool(s) then
     begin
       if s = 'true' then
-        Result := boolC.Create(true);
+        Result := boolV.Create(true)
       else
-        Result := boolC.Create(false);
+        Result := boolV.Create(false);
     end
     else if IsSymbol(s) then
-      Result := idC.Create(s);
-    else if IsString(s) then
-      Result := stringC.Create(s);
-    else if Sexp[0] = 'if' and Sexp[1] = ':' and Sexp[3] = ':' and Sexp[5] = ':'
-    then
-      ifC.Create(parse(Copy(Sexp, 2, 1)),
-                                  parse(Copy(Sexp, 4, 1)),
-                                  parse(Copy(Sexp, 6, 1)));
+      Result := idC.Create(s)
+    else if IsRealString(s) then
+      Result := idC.Create(s)
+    else if (Length(Sexp) > 5) and (Sexp[0] = 'if') and (Sexp[1] = ':') and (Sexp[3] = ':') and (Sexp[5] = ':') then
+      Result := ifC.Create(parse([Sexp[2]]),
+                           parse([Sexp[4]]),
+                           parse([Sexp[6]]))
     else
       raise Exception.Create('ZODE: parse: unrecognized Sexp!');
   end;
 end;
+
 
 // Test cases
 procedure TestNumV;
@@ -428,15 +433,16 @@ end;
 
 procedure TestParse;
 var
-   numArr: array[0..1] of string = ('1');
-   strArr: array[0..1] of string = ('cow');
-   symArr: array[0..1] of string = ('''cow');
-   boolArr: array[0..1] of string = ('false');
-   boolArr: array[0..1] of string = ('true');
-   keywordCheckArr: array[0..1] of string = ('''true');
-   ifArr: array[0..6] of string = ('if', ':', 'true', ':', '1', ':', '0');
+   numArr: array of string = ('1');
+   strArr: array of string = ('cow');
+   symArr: array of string = ('''cow');
+   boolTArr: array of string = ('false');
+   boolFArr: array of string = ('true');
+   keywordCheckArr: array of string = ('''true');
+   ifArr: array of string = ('if', ':', 'true', ':', '1', ':', '0');
 begin
-   assert(parse(numArr), numC);
+   assert(parse(numArr) = numC.Create(1), 'Test Parse failed');
+   writeln('Test Parse passed')
 end;
 procedure TestPrimV;
 var
@@ -453,6 +459,7 @@ begin
   TestNumV;
   TestBoolV;
   TestPrimV;
+  TestParse;
 end;
 
 var
